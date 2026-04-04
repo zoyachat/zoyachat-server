@@ -106,6 +106,7 @@ function handleGroupMessage(fromUserId, msg, pushToUser, senderDeviceId) {
   // Echo to sender's other devices
   pushToUser(fromUserId, { ...pushMsg, _echo: true, _senderDeviceId: senderDeviceId }, true)
 
+  try { db.insertAnalytics('group_message_send', fromUserId) } catch {}
   return { ok: true, messageId: mid, status: delivered > 0 ? 'delivered' : 'stored', timestamp, deliveredCount: delivered }
 }
 

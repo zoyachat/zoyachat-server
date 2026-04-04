@@ -95,6 +95,7 @@ router.get('/:id', (req, res) => {
 
   res.setHeader('Content-Type', file.mime_type || 'application/octet-stream')
   res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(file.filename)}"`)
+  try { db.insertAnalytics('file_download', user.userId) } catch {}
   res.sendFile(path.resolve(filePath))
 })
 

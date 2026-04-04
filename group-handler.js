@@ -129,6 +129,7 @@ function dissolveGroup(groupId, userId, pushToUser) {
     pushToUser(m.user_id, { type: 'group_dissolved', groupId, groupName: group.name })
   }
 
+  try { db.insertAnalytics('group_dissolve', userId) } catch {}
   return { ok: true }
 }
 

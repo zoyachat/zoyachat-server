@@ -20,8 +20,12 @@ function renderDashboard(onlineCount) {
   const todayRegistered = allUsers.filter(u => u.created_at >= todayStart).length
 
   const todayMessages = db.getAnalyticsCount('message_send', todayStart)
+  const todayGroupMessages = db.getAnalyticsCount('group_message_send', todayStart)
   const todayUploads = db.getAnalyticsCount('file_upload', todayStart)
+  const todayDownloads = db.getAnalyticsCount('file_download', todayStart)
   const todayGroups = db.getAnalyticsCount('group_create', todayStart)
+  const todayFriendReqs = db.getAnalyticsCount('friend_request', todayStart)
+  const todayFriendAccepts = db.getAnalyticsCount('friend_accept', todayStart)
 
   const trend = db.getDailyActiveUsers(30)
   const maxDAU = Math.max(1, ...trend.map(d => d.dau))
@@ -61,9 +65,13 @@ function renderDashboard(onlineCount) {
 </div>
 
 <div class="cards">
-  <div class="card"><div class="num">${todayMessages}</div><div class="lbl">Messages Today</div></div>
-  <div class="card"><div class="num">${todayUploads}</div><div class="lbl">Uploads Today</div></div>
-  <div class="card"><div class="num">${todayGroups}</div><div class="lbl">Groups Today</div></div>
+  <div class="card"><div class="num">${todayMessages}</div><div class="lbl">DMs Today</div></div>
+  <div class="card"><div class="num">${todayGroupMessages}</div><div class="lbl">Group Msgs</div></div>
+  <div class="card"><div class="num">${todayUploads}</div><div class="lbl">Uploads</div></div>
+  <div class="card"><div class="num">${todayDownloads}</div><div class="lbl">Downloads</div></div>
+  <div class="card"><div class="num">${todayGroups}</div><div class="lbl">New Groups</div></div>
+  <div class="card"><div class="num">${todayFriendReqs}</div><div class="lbl">Friend Reqs</div></div>
+  <div class="card"><div class="num">${todayFriendAccepts}</div><div class="lbl">Accepted</div></div>
 </div>
 
 <h2>DAU Trend (30 days)</h2>

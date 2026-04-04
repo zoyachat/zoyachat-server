@@ -30,6 +30,7 @@ function sendFriendRequest(fromUserId, toUserId, message, pushToUser) {
     message: message || '',
   })
 
+  try { db.insertAnalytics('friend_request', fromUserId) } catch {}
   return { ok: true, requestId: req.lastInsertRowid }
 }
 
@@ -53,6 +54,7 @@ function acceptFriendRequest(requestId, userId, pushToUser) {
     avatarColor: acceptor?.avatar_color || '#8b5cf6',
   })
 
+  try { db.insertAnalytics('friend_accept', userId) } catch {}
   return { ok: true }
 }
 
