@@ -34,6 +34,7 @@ function init(wss) {
     ws._deviceId = null
     ws._token = null
     ws._alive = true
+    ws._missedPongs = 0
 
     ws.send(JSON.stringify({ type: 'hello', timestamp: Date.now() }))
 
@@ -45,7 +46,7 @@ function init(wss) {
       }
     }, 10000)
 
-    ws.on('pong', () => { ws._alive = true })
+    ws.on('pong', () => { ws._alive = true; ws._missedPongs = 0 })
 
     ws.on('message', (raw) => {
       let msg
@@ -78,10 +79,14 @@ function init(wss) {
     ws.on('error', () => {}) // prevent crash on ws errors
   })
 
-  // Heartbeat interval
+  // Heartbeat interval — tolerate 2 missed pongs before terminating
+  // (high-latency connections like cross-ocean VPS can miss a single pong)
   setInterval(() => {
     wss.clients.forEach((ws) => {
-      if (!ws._alive) { ws.terminate(); return }
+      if (!ws._alive) {
+        ws._missedPongs = (ws._missedPongs || 0) + 1
+        if (ws._missedPongs >= 2) { ws.terminate(); return }
+      }
       ws._alive = false
       ws.ping()
     })
