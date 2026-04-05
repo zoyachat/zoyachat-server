@@ -69,13 +69,17 @@ function init(wss) {
       }
     })
 
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
       clearTimeout(authTimer)
+      console.log(`[ws] close: user=${ws._userId || 'unauthenticated'} code=${code} reason=${reason || ''}`)
       if (ws._userId) {
         removeConnection(ws)
-        // If no more connections for this user, set offline
         if (!hasConnections(ws._userId)) {
-          presence.setOffline(ws._userId, pushToUser)
+          try {
+            presence.setOffline(ws._userId, pushToUser)
+          } catch (e) {
+            console.error('[ws] presence.setOffline error:', e.message)
+          }
           try { db.insertAnalytics('ws_disconnect', ws._userId) } catch {}
         }
       }
@@ -123,14 +127,20 @@ function handleAuth(ws, msg, authTimer) {
     // Close oldest connection
     const oldest = existingConns.values().next().value
     if (oldest) {
-      oldest.send(JSON.stringify({ type: 'error', error: 'REPLACED_BY_NEW_DEVICE' }))
+      try { oldest.send(JSON.stringify({ type: 'error', error: 'REPLACED_BY_NEW_DEVICE' })) } catch {}
       oldest.close()
       existingConns.delete(oldest)
     }
   }
 
   addConnection(ws)
-  presence.setOnline(result.userId, pushToUser)
+
+  try {
+    presence.setOnline(result.userId, pushToUser)
+  } catch (e) {
+    console.error('[ws] presence.setOnline error:', e.message)
+  }
+
   try { db.insertAnalytics('ws_connect', result.userId) } catch {}
 
   const user = db.getUserById(result.userId)
@@ -141,10 +151,13 @@ function handleAuth(ws, msg, authTimer) {
     avatarColor: user?.avatar_color || '#8b5cf6',
   }))
 
-  // Push pending friend requests count
-  const reqCount = friendHandler.friendRequestCount(result.userId)
-  if (reqCount > 0) {
-    ws.send(JSON.stringify({ type: 'pending_friend_requests', count: reqCount }))
+  try {
+    const reqCount = friendHandler.friendRequestCount(result.userId)
+    if (reqCount > 0) {
+      ws.send(JSON.stringify({ type: 'pending_friend_requests', count: reqCount }))
+    }
+  } catch (e) {
+    console.error('[ws] friendRequestCount error:', e.message)
   }
 }
 
