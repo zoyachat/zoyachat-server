@@ -245,13 +245,21 @@ function insertMessage(messageId, fromUser, toUser, groupId, content, msgType, f
 
 function getMessagesForUser(userId, sinceTimestamp, limit) {
   return db.prepare(
-    'SELECT * FROM messages WHERE (to_user = ? OR from_user = ?) AND timestamp > ? ORDER BY timestamp ASC LIMIT ?'
+    `SELECT m.*, u.display_name AS from_display_name, u.username AS from_username, u.avatar_color AS from_avatar_color
+     FROM messages m
+     LEFT JOIN users u ON m.from_user = u.user_id
+     WHERE (m.to_user = ? OR m.from_user = ?) AND m.timestamp > ?
+     ORDER BY m.timestamp ASC LIMIT ?`
   ).all(userId, userId, sinceTimestamp, limit || config.MESSAGE_SYNC_LIMIT)
 }
 
 function getGroupMessages(groupId, sinceTimestamp, limit) {
   return db.prepare(
-    'SELECT * FROM messages WHERE group_id = ? AND timestamp > ? ORDER BY timestamp ASC LIMIT ?'
+    `SELECT m.*, u.display_name AS from_display_name, u.username AS from_username, u.avatar_color AS from_avatar_color
+     FROM messages m
+     LEFT JOIN users u ON m.from_user = u.user_id
+     WHERE m.group_id = ? AND m.timestamp > ?
+     ORDER BY m.timestamp ASC LIMIT ?`
   ).all(groupId, sinceTimestamp, limit || config.MESSAGE_SYNC_LIMIT)
 }
 
