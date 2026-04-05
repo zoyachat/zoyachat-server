@@ -136,3 +136,11 @@ httpServer.listen(config.PORT, () => {
   console.log(`[server] WebSocket: ws://localhost:${config.PORT}`)
   cleanup.startCleanup(config.CLEANUP_INTERVAL)
 })
+
+// Global safety net — log but don't crash
+process.on('uncaughtException', (err) => {
+  console.error('[server] UNCAUGHT EXCEPTION (not crashing):', err.message, err.stack?.split('\n').slice(0, 3).join('\n'))
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] UNHANDLED REJECTION (not crashing):', reason)
+})

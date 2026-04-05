@@ -60,8 +60,13 @@ function init(wss) {
         return
       }
 
-      // Authenticated — route message
-      routeMessage(ws, msg)
+      // Authenticated — route message (try/catch prevents crash → 1006 loop)
+      try {
+        routeMessage(ws, msg)
+      } catch (e) {
+        console.error(`[ws] routeMessage CRASH: type=${msg?.type} userId=${ws._userId}`, e.message, e.stack?.split('\n')[1])
+        try { ws.send(JSON.stringify({ type: 'error', error: e.message })) } catch {}
+      }
     })
 
     ws.on('close', () => {
